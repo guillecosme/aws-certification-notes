@@ -17,7 +17,7 @@ Existem alguns tipos de VIFs (Virtual Interfaces):
 
  Arquitetura do DX:
 
-    ![Arquitetura do DX](./images/dx-architecture.png)
+    ![Alt text](./images/dx-architecture.png)
 
 ## Custos
 

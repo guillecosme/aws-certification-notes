@@ -4,7 +4,7 @@ O direct connect é uma conexação estritamente física entre o data center on-
 
 - On-Premisses > DX Location > AWS Region
 
-AWS leva um tempo para disponibilizar a porta na DX Location, pois é uma instalação física. A DX LOcation não é propriedada da AWS, muitas vezes é um provedor de datacenter, por exemplo Tivit, Equinix.
+AWS leva um tempo para disponibilizar a porta na DX Location, pois é uma instalação física. A DX Location não é propriedada da AWS, muitas vezes é um provedor de datacenter, por exemplo Tivit, Equinix.
 
 Uma vez que a infra estrutura esteja habilitada no provedor de serviços (Equinix e Tivit por exemplo). Uma cross connection é feita entre a porta do DX e o router do provedor e o seu roteador no Onpremisses.
 
@@ -57,11 +57,31 @@ Feature de Segurança habilitada no DX que pemrite a confidencialidade, nas tran
 
 Como por padrão o serviço de DX não possuí cripotgrafia na conexão cross dos datacenters, toda comunicação ocorre em texto puro na transmissão dos dados. Para solucionar este ponto seria possível estabelecer uma conexão de VPN IPsec em cima da conexão cross do DX, poreḿ isto seria custoso. O MAC Sec pode ajudar neste ponto uma vez que é possível habilitar esta feature ao criar canis de comunicações segurps entre os roteadores e conexoes cross envolvidas. A partir daí uma assinatura é exigida e adicionada nos frames da Layer 02. Onde apenas os equipamentos assinados e envolvidos na conexeão poderão realizar a decriptografia do payload do dataframe.
 
+![Arquitetura do MacSec](./images/dx-mac-sec-architecture.png)
+![DataFrame](./images/dx-mac-sec-frames.png)
+
 ## Direct Connect Gateway
 
+Como o Direct Connect é um serviço estritamente regional há uma limitação ao establecer VIF's privadas para VPCs em múltiplas regiões, imagine o cenário onde uma topologia de rede possui mas de 10 VPC's, na mesma região ou não, para acessar s recursos dessas VPCs privadas via On Premisses através da conexão DX seria necessário criar uma VIF privada para cada VPCs, essa solução não escala muito bem.
 
-![DataFrame](./images/dx-mac-sec-frames.png)
-![Arquitetura do MacSec](./images/dx-mac-sec-architecture.png)
+Ao invés de criar uma VIF chegando em um VGW em cada VPC, seria possível criar um DX Gateway e a VIF privada terminaria do DX Gateway, e ele por si só teria a capacidade de se comunicar com múltiplas VPCs em múltiplas regiões.
+
+Ao invés de cada VIF terminar e se associar a um VGW, você precisaria de apenas uma VIF privada associada a este DX Gateway e partir daí seria possível associar qualquer VGW de qualquer VPC a este Direct Connect Gateway.
+
+- Cenário não escalável: Onpremisses > DX Location (VIF) > AWS Region > VPC VGW
+- Cenário Direct Connect: On Premisses > DX Location (VIF) > AWS Region > DX Gateway > VPC VGW (múltiplas associações.)
+
+Direct COnnect Gateway = Serviço Global
+
+![Arquitetura DX Gateway](./images/dx-dx-gateway-architecture.png)
+
+## Direct Connect e Transit Gateways
+
+Como o DX Gateway só habilitaria a comunicação bilateral entre o OnPremisses e os recursos privados de VPC e não habilitaria a comunicação Hub and Spoke entre as VPCs, seria possível estabelecer uma VIF de trânsito sob a concexão cross do DX, e associá-la a Transit Gateways, desta maneira haveria comunicação latera entre as VPCs e também via On-premisses.
+
+O DX Gateway suporta VIF privada e VIF transitiva, mas nunca as duas ao mesmo tempos, caso necessite das duas, você precisará configurar dois DX Gateways.
+
+![TGW-DX-Gateway](./images/dx-tgw-dx-gateway.png)
 
 ## Letter of Authorization CUstomer Facility Access (LOA-CFA)
 
